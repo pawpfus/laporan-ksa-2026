@@ -56,7 +56,7 @@
   .topbar-inner{max-width:1160px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:16px}
   .brand{display:flex;align-items:center;gap:12px;min-width:0}
   .logo{width:44px;height:44px;border-radius:10px;flex:0 0 auto;background:transparent;display:grid;place-items:center;overflow:hidden}
-  .logo svg{width:auto;height:42px}
+  .logo img{width:100%;height:100%;object-fit:contain;display:block}
   .brand h1{font-size:15px;margin:0;font-weight:800;letter-spacing:.3px;line-height:1.06;white-space:nowrap}
   .brand p{margin:1px 0 0;font-size:11.5px;color:var(--tb-sub);font-weight:500}
   .spacer{flex:1}
@@ -191,35 +191,10 @@
   <div class="topbar-inner">
     <div class="brand">
       <div class="logo">
-        <svg viewBox="0 0 100 132" xmlns="http://www.w3.org/2000/svg">
-          <defs><clipPath id="ovl"><rect x="9" y="9" width="82" height="114" rx="41"/></clipPath></defs>
-          <rect x="9" y="9" width="82" height="114" rx="41" fill="#ffffff"/>
-          <g clip-path="url(#ovl)">
-            <g stroke="#f6a821" stroke-width="3.6" stroke-linecap="round">
-              <line x1="50" y1="42" x2="50" y2="30"/>
-              <line x1="56.8" y1="43.3" x2="60.9" y2="33.1"/>
-              <line x1="62.7" y1="47.3" x2="70.5" y2="39.5"/>
-              <line x1="66.6" y1="53" x2="76.7" y2="48.7"/>
-              <line x1="68" y1="60" x2="79" y2="60"/>
-              <line x1="43.2" y1="43.3" x2="39.1" y2="33.1"/>
-              <line x1="37.3" y1="47.3" x2="29.5" y2="39.5"/>
-              <line x1="33.4" y1="53" x2="23.3" y2="48.7"/>
-              <line x1="32" y1="60" x2="21" y2="60"/>
-            </g>
-            <circle cx="50" cy="60" r="15" fill="#f6a821"/>
-            <path d="M2 78 Q50 64 98 78 L98 124 L2 124 Z" fill="#6cb33f"/>
-            <path d="M2 94 Q50 80 98 94 L98 124 L2 124 Z" fill="#2f8a3e"/>
-            <g stroke="#ffffff" stroke-width="2.2" fill="none" stroke-linecap="round">
-              <path d="M8 102 Q50 90 92 102"/>
-              <path d="M14 112 Q50 102 86 112"/>
-            </g>
-          </g>
-          <rect x="9" y="9" width="82" height="114" rx="41" fill="none" stroke="#2e7d32" stroke-width="6"/>
-        </svg>
+        <img src="logo.png" alt="Logo KSA" onerror="this.style.display='none'">
       </div>
       <div>
         <h1>Laporan<br>KSA</h1>
-        <p>Pendampingan KSA Tahun 2026</p>
       </div>
     </div>
     <div class="spacer"></div>
@@ -279,12 +254,6 @@
     <div class="card-body">
       <div class="amatan-grid" id="amatanGrid"></div>
 
-      <div class="legend">
-        <h3>Keterangan — Amatan diisi dengan kode:</h3>
-        <div class="legend-grid" id="legendGrid"></div>
-        <div class="note">Penjelasan diisi kondisi apa yang terjadi di lapangan.</div>
-      </div>
-
       <div class="grid" style="margin-top:18px">
         <div class="field full">
           <label>Apakah segmen berpeluang menjadi sampel ubinan?</label>
@@ -312,18 +281,17 @@
   </div>
 </div>
 
-<input type="file" id="fileInput" accept="image/*" style="display:none">
 <input type="file" id="docInput" accept="image/*" multiple style="display:none">
 <div class="toast" id="toast"></div>
 
 <script>
 const DEFAULTS={
   kecamatan:'Pitu Riawa',
-  desa:'Otting',
+  desa:'',
   tanggal:'',
   luas:'',
   poktan:'',
-  ppl:'MUHAMMAD FACHRURI, S.TP',
+  ppl:'',
   mitra:'',
   varietas:'',
   umur:''
@@ -344,7 +312,6 @@ const CODES=[
 const codeLabel=v=>{const c=CODES.find(x=>x.v===String(v));return c?c.v+'. '+c.t:'';};
 const KEY='laporan_ksa_v1';
 let state={id:{},amatan:{},ubinan:'',docs:[]};
-let pendingSub=null; // subsegment id awaiting photo
 
 /* ---------- persistence ---------- */
 function val(id){const e=document.getElementById(id);return e?e.value:'';}
@@ -361,11 +328,11 @@ function load(){
   if(!state.id)state.id={};
   if(!state.amatan)state.amatan={};
   if(!Array.isArray(state.docs))state.docs=[];
-  SUBS.forEach(s=>{if(!state.amatan[s])state.amatan[s]={code:'',note:'',photo:null};});
+  SUBS.forEach(s=>{if(!state.amatan[s])state.amatan[s]={code:'',note:''};});
   const haveAny=Object.keys(state.id).length;
   ID_FIELDS.forEach(k=>setVal(k,haveAny?(state.id[k]??''):DEFAULTS[k]));
   setVal('ubinan',state.ubinan||'');
-  renderLegend();renderAmatan();renderDocs();
+  renderAmatan();renderDocs();
 }
 function applyDefaults(){
   ID_FIELDS.forEach(k=>setVal(k,DEFAULTS[k]));save();toast('Data default dimuat');
@@ -377,11 +344,6 @@ function flashSave(){
   clearTimeout(saveTimer);saveTimer=setTimeout(()=>{d.classList.remove('saving');t.textContent='Tersimpan otomatis';},650);
 }
 
-/* ---------- legend ---------- */
-function renderLegend(){
-  document.getElementById('legendGrid').innerHTML=CODES.map(c=>`<div class="legend-item"><b>${c.v}.</b><span>${c.t}</span></div>`).join('');
-}
-
 /* ---------- amatan grid ---------- */
 function renderAmatan(){
   const box=document.getElementById('amatanGrid');
@@ -389,13 +351,9 @@ function renderAmatan(){
     const a=state.amatan[s];
     const opts='<option value="">—</option>'+CODES.map(c=>`<option value="${c.v}" ${a.code===c.v?'selected':''}>${c.v}. ${c.t}</option>`).join('');
     const badge=a.code?codeLabel(a.code).split('. ').slice(1).join('. '):'belum diisi';
-    const slot=a.photo
-      ? `<div class="ev-slot filled" onclick="pickPhoto('${s}')"><img src="${a.photo}" alt="${s}"><button class="ev-remove" onclick="event.stopPropagation();removePhoto('${s}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>`
-      : `<div class="ev-slot" onclick="pickPhoto('${s}')"><div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Foto amatan</div></div>`;
     return `<div class="sub">
       <div class="sub-head"><span class="sub-id">${s}</span><span class="sub-badge">${esc(badge)}</span></div>
       <div class="sub-body">
-        ${slot}
         <div><label>Kode amatan</label><select onchange="setCode('${s}',this.value)">${opts}</select></div>
         <div><label>Penjelasan</label><textarea placeholder="Kondisi di lapangan" onchange="setNote('${s}',this.value)">${esc(a.note)}</textarea></div>
       </div>
@@ -404,13 +362,6 @@ function renderAmatan(){
 }
 function setCode(s,v){state.amatan[s].code=v;save();renderAmatan();}
 function setNote(s,v){state.amatan[s].note=v;save();}
-function pickPhoto(s){pendingSub=s;document.getElementById('fileInput').click();}
-function removePhoto(s){state.amatan[s].photo=null;save();renderAmatan();}
-document.getElementById('fileInput').addEventListener('change',function(e){
-  const f=e.target.files[0];if(!f||!pendingSub)return;
-  resizeImage(f,1600,2200,0.85).then(d=>{state.amatan[pendingSub].photo=d;save();renderAmatan();pendingSub=null;this.value='';})
-  .catch(()=>{toast('Gagal memuat gambar',true);this.value='';});
-});
 
 /* ---------- docs gallery ---------- */
 function renderDocs(){
@@ -522,7 +473,6 @@ function pdfAmatanHTML(){
       body+=`<td><div class="acell">
         <div class="aid">Amatan ${s}</div>
         <div class="acode">${a.code?esc(codeLabel(a.code)):'( kode: - )'}</div>
-        ${a.photo?`<img class="aimg" src="${a.photo}">`:''}
         <div class="anote">${esc(a.note||'')}</div>
       </div></td>`;
     }
@@ -625,7 +575,6 @@ async function exportWord(){
           p([txt('Amatan '+s,{bold:true})]),
           p([txt('Kode: '+(a.code?codeLabel(a.code):'-'),{size:20,color:'1a7f4b'})],{spacing:{after:60}})
         ];
-        if(a.photo){try{kids.push(p([await imgRun(a.photo,150,150)]));}catch(e){}}
         kids.push(p([txt('Penjelasan: '+(a.note||'-'),{size:20})],{spacing:{before:60}}));
         cells.push(new TableCell({width:{size:33,type:WidthType.PERCENTAGE},borders:cellBorder,verticalAlign:VerticalAlign.TOP,children:kids}));
       }
@@ -680,7 +629,7 @@ async function exportWord(){
 function resetAll(){
   if(!confirm('Kosongkan SEMUA isi data (identitas, amatan & dokumentasi)? Tindakan ini tidak bisa dibatalkan.'))return;
   state={id:{},amatan:{},ubinan:'',docs:[]};
-  SUBS.forEach(s=>state.amatan[s]={code:'',note:'',photo:null});
+  SUBS.forEach(s=>state.amatan[s]={code:'',note:''});
   ID_FIELDS.forEach(k=>setVal(k,''));setVal('ubinan','');
   renderAmatan();renderDocs();save();
 }
@@ -701,7 +650,7 @@ updateThemeIcons();
 ID_FIELDS.forEach(k=>{const e=document.getElementById(k);if(e)e.addEventListener('input',save);});
 document.getElementById('ubinan').addEventListener('change',save);
 document.getElementById('ppl').addEventListener('blur',function(){this.value=this.value.toUpperCase();save();});
-window.setCode=setCode;window.setNote=setNote;window.pickPhoto=pickPhoto;window.removePhoto=removePhoto;
+window.setCode=setCode;window.setNote=setNote;
 window.removeDoc=removeDoc;window.applyDefaults=applyDefaults;
 window.exportWord=exportWord;window.downloadPDF=downloadPDF;window.resetAll=resetAll;window.toggleTheme=toggleTheme;
 load();
