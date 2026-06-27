@@ -326,6 +326,19 @@ const CODES=[
   {v:'12',t:'Tidak dapat diakses'}
 ];
 const codeLabel=v=>{const c=CODES.find(x=>x.v===String(v));return c?c.v+'. '+c.t:'';};
+// Penjelasan otomatis menurut kode amatan (bisa diubah manual)
+const NOTE_TPL={
+  '1':'Tanaman padi pada fase vegetatif awal; pertumbuhan daun dan anakan masih berlangsung.',
+  '2':'Tanaman padi pada fase vegetatif akhir; anakan maksimal menjelang fase primordia.',
+  '3':'Tanaman padi pada fase generatif; sudah bunting/keluar malai hingga pengisian bulir.',
+  '4':'Tanaman padi pada fase panen; bulir telah menguning dan siap/sedang dipanen.',
+  '5':'Lahan dalam tahap persiapan/olah tanah, belum ditanami padi.',
+  '6':'Tanaman padi mengalami puso (gagal panen) akibat gangguan atau bencana.',
+  '7':'Lahan pertanian ditanami komoditas selain padi.',
+  '8':'Area bukan merupakan lahan pertanian.',
+  '12':'Titik amatan tidak dapat diakses saat pendampingan.'
+};
+const AUTO_NOTES=new Set(Object.values(NOTE_TPL));
 const KEY='laporan_ksa_v2';
 let state={id:{},amatan:{},ubinan:'',docs:[]};
 
@@ -382,7 +395,12 @@ function renderAmatan(){
     </div>`;
   }).join('');
 }
-function setCode(s,v){state.amatan[s].code=v;save();renderAmatan();}
+function setCode(s,v){
+  const a=state.amatan[s];a.code=v;
+  // Autogenerate penjelasan: isi hanya bila kosong atau masih teks otomatis sebelumnya
+  if(!a.note||AUTO_NOTES.has(a.note)){a.note=v&&NOTE_TPL[v]?NOTE_TPL[v]:'';}
+  save();renderAmatan();
+}
 function setNote(s,v){state.amatan[s].note=v;save();}
 function setCoord(s,v){state.amatan[s].coord=v;save();}
 
