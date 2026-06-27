@@ -1,0 +1,25 @@
+{
+  "name": "Laporan KSA 2026 - Pendampingan",
+  "short_name": "Laporan KSA",
+  "description": "Formulir pelaporan pendampingan KSA (Kerangka Sampel Area) tahun 2026.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d110d",
+  "theme_color": "#014421",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

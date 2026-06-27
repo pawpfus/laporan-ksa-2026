@@ -9,7 +9,12 @@
 <title>Laporan KSA 2026</title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#014421">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Laporan KSA">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
@@ -131,6 +136,14 @@
   .sub-body label{font-size:10px;letter-spacing:.3px;color:var(--ink-3)}
   .sub-body select,.sub-body textarea{padding:6px 8px;font-size:12px}
   .sub-body textarea{min-height:34px;font-size:12px}
+  /* coordinate pill */
+  .coord-pill{display:flex;align-items:center;gap:5px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:3px 9px;transition:border .15s,box-shadow .15s}
+  .coord-pill:focus-within{border-color:var(--moss);box-shadow:0 0 0 3px rgba(1,68,33,.1)}
+  .coord-pill svg{width:12px;height:12px;flex:0 0 auto;color:var(--moss)}
+  .coord-pill input{border:0!important;background:transparent!important;padding:2px 0;font-size:11px;width:100%;color:var(--ink)}
+  .coord-pill input:focus{outline:none;box-shadow:none}
+  body.dark .coord-pill{background:var(--moss-4)}
+  body.dark .coord-pill input{background:transparent!important;color:var(--ink)}
   /* photo slot */
   .ev-slot{border:1.5px dashed #cdded5;border-radius:10px;background:var(--soft);min-height:78px;position:relative;overflow:hidden;cursor:pointer;transition:.15s;display:grid;place-items:center}
   .ev-slot:hover{border-color:var(--moss);background:var(--moss-4)}
@@ -256,7 +269,7 @@
   <div class="card">
     <div class="card-head">
       <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></div>
-      <div><h2>Hasil Amatan Subsegmen</h2><p>9 titik amatan (A1–C3): kode fase, penjelasan & foto</p></div>
+      <div><h2>Hasil Amatan Subsegmen</h2><p>9 titik amatan (A1–C3): kode fase, koordinat & penjelasan</p></div>
       <span class="step">LANGKAH 2</span>
     </div>
     <div class="card-body">
@@ -336,7 +349,7 @@ function load(){
   if(!state.id)state.id={};
   if(!state.amatan)state.amatan={};
   if(!Array.isArray(state.docs))state.docs=[];
-  SUBS.forEach(s=>{if(!state.amatan[s])state.amatan[s]={code:'',note:''};});
+  SUBS.forEach(s=>{if(!state.amatan[s])state.amatan[s]={code:'',note:'',coord:''};else if(state.amatan[s].coord===undefined)state.amatan[s].coord='';});
   const haveAny=Object.keys(state.id).length;
   ID_FIELDS.forEach(k=>setVal(k,haveAny?(state.id[k]??''):DEFAULTS[k]));
   setVal('ubinan',state.ubinan||'');
@@ -364,12 +377,19 @@ function renderAmatan(){
       <div class="sub-body">
         <div><label>Kode amatan</label><select onchange="setCode('${s}',this.value)">${opts}</select></div>
         <div><label>Penjelasan</label><textarea placeholder="Kondisi di lapangan" onchange="setNote('${s}',this.value)">${esc(a.note)}</textarea></div>
+        <div><label>Titik koordinat</label>
+          <div class="coord-pill" title="Format: lintang, bujur (desimal)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <input type="text" inputmode="decimal" placeholder="-3.812345, 119.987654" value="${esc(a.coord||'')}" onchange="setCoord('${s}',this.value)">
+          </div>
+        </div>
       </div>
     </div>`;
   }).join('');
 }
 function setCode(s,v){state.amatan[s].code=v;save();renderAmatan();}
 function setNote(s,v){state.amatan[s].note=v;save();}
+function setCoord(s,v){state.amatan[s].coord=v;save();}
 
 /* ---------- docs gallery ---------- */
 function renderDocs(){
@@ -455,7 +475,9 @@ body{font-family:'Instrument Sans',sans-serif;color:#000}
 .atab td{border:0.5px solid #000;width:33.33%;vertical-align:top;padding:0}
 .acell{padding:6px 7px 8px}
 .acell .aid{font-weight:800;font-size:12.5px}
-.acell .acode{font-size:11px;margin:1px 0 4px;color:#0a3}
+.acell .acode{font-size:11px;margin:1px 0 3px;color:#0a3}
+.acell .acoord{font-size:10px;margin:0 0 4px;color:#444}
+.acell .acoord b{font-weight:700}
 .acell .aimg{width:100%;height:128px;border:0.5px solid #bbb;border-radius:4px;object-fit:cover;display:block;margin-bottom:4px;background:#f3f3f3}
 .acell .anote{font-size:10.5px;line-height:1.35;white-space:pre-wrap;word-break:break-word}
 .kethead{font-weight:700;font-size:11.5px;margin:14px 0 4px}
@@ -481,6 +503,7 @@ function pdfAmatanHTML(){
       body+=`<td><div class="acell">
         <div class="aid">Amatan ${s}</div>
         <div class="acode">${a.code?esc(codeLabel(a.code)):'( kode: - )'}</div>
+        ${a.coord?`<div class="acoord"><b>Koordinat:</b> ${esc(a.coord)}</div>`:''}
         <div class="anote">${esc(a.note||'')}</div>
       </div></td>`;
     }
@@ -583,6 +606,7 @@ async function exportWord(){
           p([txt('Amatan '+s,{bold:true})]),
           p([txt('Kode: '+(a.code?codeLabel(a.code):'-'),{size:20,color:'1a7f4b'})],{spacing:{after:60}})
         ];
+        if(a.coord)kids.push(p([txt('Koordinat: ',{size:18,bold:true,color:'444444'}),txt(a.coord,{size:18,color:'444444'})],{spacing:{after:40}}));
         kids.push(p([txt('Penjelasan: '+(a.note||'-'),{size:20})],{spacing:{before:60}}));
         cells.push(new TableCell({width:{size:33,type:WidthType.PERCENTAGE},borders:cellBorder,verticalAlign:VerticalAlign.TOP,children:kids}));
       }
@@ -637,7 +661,7 @@ async function exportWord(){
 function resetAll(){
   if(!confirm('Kosongkan SEMUA isi data (identitas, amatan & dokumentasi)? Tindakan ini tidak bisa dibatalkan.'))return;
   state={id:{},amatan:{},ubinan:'',docs:[]};
-  SUBS.forEach(s=>state.amatan[s]={code:'',note:''});
+  SUBS.forEach(s=>state.amatan[s]={code:'',note:'',coord:''});
   ID_FIELDS.forEach(k=>setVal(k,''));setVal('ubinan','');
   renderAmatan();renderDocs();save();
 }
@@ -658,10 +682,15 @@ updateThemeIcons();
 ID_FIELDS.forEach(k=>{const e=document.getElementById(k);if(e)e.addEventListener('input',save);});
 document.getElementById('ubinan').addEventListener('change',save);
 document.getElementById('ppl').addEventListener('blur',function(){this.value=this.value.toUpperCase();save();});
-window.setCode=setCode;window.setNote=setNote;
+window.setCode=setCode;window.setNote=setNote;window.setCoord=setCoord;
 window.removeDoc=removeDoc;window.applyDefaults=applyDefaults;
 window.exportWord=exportWord;window.downloadPDF=downloadPDF;window.resetAll=resetAll;window.toggleTheme=toggleTheme;
 load();
+
+/* ---------- PWA service worker ---------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
 </script>
 </body>
 </html>
