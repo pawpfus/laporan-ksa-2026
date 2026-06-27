@@ -1,4 +1,4 @@
-const CACHE_NAME = 'laporan-ksa-v4';
+const CACHE_NAME = 'laporan-ksa-v5';
 const ASSETS = [
   './',
   './index.html',
