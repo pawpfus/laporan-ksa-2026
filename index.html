@@ -144,14 +144,9 @@
   .coord-pill input:focus{outline:none;box-shadow:none}
   body.dark .coord-pill{background:var(--moss-4)}
   body.dark .coord-pill input{background:transparent!important;color:var(--ink)}
-  /* vocabulary suggestion chips */
-  .vocab{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;align-items:center}
-  .vocab-lbl{font-size:8.5px;font-weight:700;letter-spacing:.5px;color:var(--ink-3);margin-right:1px}
-  .vchip{appearance:none;font:inherit;font-size:10px;font-weight:600;line-height:1.25;padding:3px 7px;border-radius:999px;border:1px solid var(--line);background:var(--soft);color:var(--ink-2);cursor:pointer;transition:.12s;white-space:nowrap}
-  .vchip:hover{border-color:var(--moss);background:var(--moss-4);color:var(--moss)}
-  .vchip:active{transform:scale(.94)}
-  body.dark .vchip{background:var(--moss-4);color:var(--ink-2);border-color:var(--line)}
-  body.dark .vchip:hover{color:var(--moss-2);border-color:var(--moss)}
+  /* penjelasan options dropdown */
+  .penjel-opsi{margin-bottom:5px;font-size:11.5px;padding:6px 8px}
+  body.dark .penjel-opsi{background:var(--moss-3);color:var(--ink)}
   /* photo slot */
   .ev-slot{border:1.5px dashed #cdded5;border-radius:10px;background:var(--soft);min-height:78px;position:relative;overflow:hidden;cursor:pointer;transition:.15s;display:grid;place-items:center}
   .ev-slot:hover{border-color:var(--moss);background:var(--moss-4)}
@@ -334,37 +329,63 @@ const CODES=[
   {v:'12',t:'Tidak dapat diakses'}
 ];
 const codeLabel=v=>{const c=CODES.find(x=>x.v===String(v));return c?c.v+'. '+c.t:'';};
-// Penjelasan otomatis menurut kode amatan (bisa diubah manual)
-const NOTE_TPL={
-  '1':'Tanaman padi pada fase vegetatif awal; pertumbuhan daun dan anakan masih berlangsung.',
-  '2':'Tanaman padi pada fase vegetatif akhir; anakan maksimal menjelang fase primordia.',
-  '3':'Tanaman padi pada fase generatif; sudah bunting/keluar malai hingga pengisian bulir.',
-  '4':'Tanaman padi pada fase panen; bulir telah menguning dan siap/sedang dipanen.',
-  '5':'Lahan dalam tahap persiapan/olah tanah, belum ditanami padi.',
-  '6':'Tanaman padi mengalami puso (gagal panen) akibat gangguan atau bencana.',
-  '7':'Lahan pertanian ditanami komoditas selain padi.',
-  '8':'Area bukan merupakan lahan pertanian.',
-  '12':'Titik amatan tidak dapat diakses saat pendampingan.'
+// Pilihan opsi penjelasan menurut kode amatan (opsi pertama jadi default)
+const PENJELASAN={
+  '1':[
+    'Tanaman padi pada fase vegetatif awal; pertumbuhan daun dan anakan masih berlangsung.',
+    'Pertanaman padi muda fase vegetatif awal, anakan tumbuh aktif dan tanaman tampak sehat seragam.',
+    'Fase vegetatif awal; pemupukan dasar telah dilakukan dan pengairan mencukupi.'
+  ],
+  '2':[
+    'Tanaman padi pada fase vegetatif akhir; anakan maksimal menjelang fase primordia.',
+    'Fase vegetatif akhir, pertumbuhan anakan optimal dan pemupukan susulan telah diberikan.',
+    'Fase vegetatif akhir; tanaman seragam dan siap memasuki fase generatif.'
+  ],
+  '3':[
+    'Tanaman padi pada fase generatif; sudah bunting/keluar malai hingga pengisian bulir.',
+    'Fase generatif, tanaman sedang berbunga (antesis) menuju pengisian gabah.',
+    'Fase generatif; gabah mulai terisi, pengamatan OPT dilakukan.'
+  ],
+  '4':[
+    'Tanaman padi pada fase panen; bulir telah menguning dan siap/sedang dipanen.',
+    'Pertanaman memasuki panen, gabah bernas dengan potensi hasil baik.',
+    'Sedang dilakukan panen pada pertanaman padi.'
+  ],
+  '5':[
+    'Lahan dalam tahap persiapan/olah tanah, belum ditanami padi.',
+    'Lahan sedang diolah (pembajakan/garu), rencana tanam dalam waktu dekat.',
+    'Lahan bera sementara menunggu jadwal tanam berikutnya.'
+  ],
+  '6':[
+    'Tanaman padi mengalami puso (gagal panen) akibat gangguan atau bencana.',
+    'Pertanaman puso terdampak banjir/genangan.',
+    'Pertanaman puso terdampak kekeringan.',
+    'Pertanaman puso akibat serangan OPT berat.'
+  ],
+  '7':[
+    'Lahan pertanian ditanami komoditas selain padi.',
+    'Lahan ditanami palawija (mis. jagung/kedelai).',
+    'Lahan ditanami hortikultura/sayuran.'
+  ],
+  '8':[
+    'Area bukan merupakan lahan pertanian.',
+    'Lokasi berupa permukiman/bangunan.',
+    'Lokasi berupa lahan kosong/semak atau infrastruktur.'
+  ],
+  '12':[
+    'Titik amatan tidak dapat diakses saat pendampingan.',
+    'Lokasi tidak dapat dijangkau karena medan sulit/akses tertutup.',
+    'Pengamatan terkendala cuaca atau keamanan lokasi.'
+  ]
 };
-const AUTO_NOTES=new Set(Object.values(NOTE_TPL));
-// Kosakata saran penjelasan per kode amatan (klik untuk menambah ke penjelasan)
-const VOCAB={
-  '1':['anakan tumbuh aktif','tanaman sehat & seragam','warna daun hijau segar','pemupukan dasar telah diberikan','pengairan cukup','gulma terkendali'],
-  '2':['anakan maksimal','menjelang primordia','pemupukan susulan dilakukan','pertumbuhan vegetatif optimal','tanaman seragam'],
-  '3':['fase bunting','keluar malai (heading)','sedang berbunga (antesis)','pengisian bulir','gabah mulai terisi','pengamatan OPT dilakukan'],
-  '4':['bulir menguning merata','siap panen','sedang dipanen','potensi hasil baik','gabah bernas'],
-  '5':['pengolahan tanah','pembajakan/garu','lahan bera sementara','genangan disiapkan','rencana tanam segera'],
-  '6':['terdampak banjir','terdampak kekeringan','serangan OPT berat','gagal panen total','perlu penanganan'],
-  '7':['ditanami jagung','ditanami palawija','tanaman hortikultura/sayuran','tanaman perkebunan'],
-  '8':['area permukiman','lahan kosong/semak','jalan/infrastruktur','badan air (sungai/kolam)'],
-  '12':['medan sulit dijangkau','akses jalan tertutup','terkendala cuaca','lokasi tidak aman']
-};
-function addVocab(s,i){
-  const a=state.amatan[s];const list=VOCAB[a.code];if(!list||!list[i])return;
-  let n=(a.note||'').trim();
-  if(n && !/[.;,]$/.test(n))n+='.';
-  a.note=(n?n+' ':'')+list[i];
-  save();renderAmatan();
+const NOTE_TPL={};Object.keys(PENJELASAN).forEach(k=>NOTE_TPL[k]=PENJELASAN[k][0]);
+// semua kalimat preset -> dianggap "otomatis" agar bisa diganti saat kode berubah, tapi teks manual tetap aman
+const AUTO_NOTES=new Set();Object.values(PENJELASAN).forEach(arr=>arr.forEach(t=>AUTO_NOTES.add(t)));
+// pilih salah satu opsi penjelasan dari dropdown
+function setPreset(s,i){
+  const a=state.amatan[s];const list=PENJELASAN[a.code];
+  if(i===''||!list||!list[+i])return;
+  a.note=list[+i];save();renderAmatan();
 }
 const KEY='laporan_ksa_v2';
 let state={id:{},amatan:{},ubinan:'',docs:[]};
@@ -411,7 +432,7 @@ function renderAmatan(){
       <div class="sub-head"><span class="sub-id">${s}</span><span class="sub-badge">${esc(badge)}</span></div>
       <div class="sub-body">
         <div><label>Kode amatan</label><select onchange="setCode('${s}',this.value)">${opts}</select></div>
-        <div><label>Penjelasan</label><textarea placeholder="Kondisi di lapangan" onchange="setNote('${s}',this.value)">${esc(a.note)}</textarea>${a.code&&VOCAB[a.code]?`<div class="vocab"><span class="vocab-lbl">SARAN</span>${VOCAB[a.code].map((ph,i)=>`<button type="button" class="vchip" onclick="addVocab('${s}',${i})">+ ${esc(ph)}</button>`).join('')}</div>`:''}</div>
+        <div><label>Penjelasan</label>${a.code&&PENJELASAN[a.code]?`<select class="penjel-opsi" onchange="setPreset('${s}',this.value)"><option value="">— pilih opsi penjelasan —</option>${PENJELASAN[a.code].map((t,i)=>`<option value="${i}" ${a.note===t?'selected':''}>${esc(t)}</option>`).join('')}</select>`:''}<textarea placeholder="Kondisi di lapangan" onchange="setNote('${s}',this.value)">${esc(a.note)}</textarea></div>
         <div><label>Titik koordinat</label>
           <div class="coord-pill" title="Format: lintang, bujur (desimal)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -722,7 +743,7 @@ updateThemeIcons();
 ID_FIELDS.forEach(k=>{const e=document.getElementById(k);if(e)e.addEventListener('input',save);});
 document.getElementById('ubinan').addEventListener('change',save);
 document.getElementById('ppl').addEventListener('blur',function(){this.value=this.value.toUpperCase();save();});
-window.setCode=setCode;window.setNote=setNote;window.setCoord=setCoord;window.addVocab=addVocab;
+window.setCode=setCode;window.setNote=setNote;window.setCoord=setCoord;window.setPreset=setPreset;
 window.removeDoc=removeDoc;window.applyDefaults=applyDefaults;
 window.exportWord=exportWord;window.downloadPDF=downloadPDF;window.resetAll=resetAll;window.toggleTheme=toggleTheme;
 load();
