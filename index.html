@@ -144,6 +144,14 @@
   .coord-pill input:focus{outline:none;box-shadow:none}
   body.dark .coord-pill{background:var(--moss-4)}
   body.dark .coord-pill input{background:transparent!important;color:var(--ink)}
+  /* vocabulary suggestion chips */
+  .vocab{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;align-items:center}
+  .vocab-lbl{font-size:8.5px;font-weight:700;letter-spacing:.5px;color:var(--ink-3);margin-right:1px}
+  .vchip{appearance:none;font:inherit;font-size:10px;font-weight:600;line-height:1.25;padding:3px 7px;border-radius:999px;border:1px solid var(--line);background:var(--soft);color:var(--ink-2);cursor:pointer;transition:.12s;white-space:nowrap}
+  .vchip:hover{border-color:var(--moss);background:var(--moss-4);color:var(--moss)}
+  .vchip:active{transform:scale(.94)}
+  body.dark .vchip{background:var(--moss-4);color:var(--ink-2);border-color:var(--line)}
+  body.dark .vchip:hover{color:var(--moss-2);border-color:var(--moss)}
   /* photo slot */
   .ev-slot{border:1.5px dashed #cdded5;border-radius:10px;background:var(--soft);min-height:78px;position:relative;overflow:hidden;cursor:pointer;transition:.15s;display:grid;place-items:center}
   .ev-slot:hover{border-color:var(--moss);background:var(--moss-4)}
@@ -339,6 +347,25 @@ const NOTE_TPL={
   '12':'Titik amatan tidak dapat diakses saat pendampingan.'
 };
 const AUTO_NOTES=new Set(Object.values(NOTE_TPL));
+// Kosakata saran penjelasan per kode amatan (klik untuk menambah ke penjelasan)
+const VOCAB={
+  '1':['anakan tumbuh aktif','tanaman sehat & seragam','warna daun hijau segar','pemupukan dasar telah diberikan','pengairan cukup','gulma terkendali'],
+  '2':['anakan maksimal','menjelang primordia','pemupukan susulan dilakukan','pertumbuhan vegetatif optimal','tanaman seragam'],
+  '3':['fase bunting','keluar malai (heading)','sedang berbunga (antesis)','pengisian bulir','gabah mulai terisi','pengamatan OPT dilakukan'],
+  '4':['bulir menguning merata','siap panen','sedang dipanen','potensi hasil baik','gabah bernas'],
+  '5':['pengolahan tanah','pembajakan/garu','lahan bera sementara','genangan disiapkan','rencana tanam segera'],
+  '6':['terdampak banjir','terdampak kekeringan','serangan OPT berat','gagal panen total','perlu penanganan'],
+  '7':['ditanami jagung','ditanami palawija','tanaman hortikultura/sayuran','tanaman perkebunan'],
+  '8':['area permukiman','lahan kosong/semak','jalan/infrastruktur','badan air (sungai/kolam)'],
+  '12':['medan sulit dijangkau','akses jalan tertutup','terkendala cuaca','lokasi tidak aman']
+};
+function addVocab(s,i){
+  const a=state.amatan[s];const list=VOCAB[a.code];if(!list||!list[i])return;
+  let n=(a.note||'').trim();
+  if(n && !/[.;,]$/.test(n))n+='.';
+  a.note=(n?n+' ':'')+list[i];
+  save();renderAmatan();
+}
 const KEY='laporan_ksa_v2';
 let state={id:{},amatan:{},ubinan:'',docs:[]};
 
@@ -384,7 +411,7 @@ function renderAmatan(){
       <div class="sub-head"><span class="sub-id">${s}</span><span class="sub-badge">${esc(badge)}</span></div>
       <div class="sub-body">
         <div><label>Kode amatan</label><select onchange="setCode('${s}',this.value)">${opts}</select></div>
-        <div><label>Penjelasan</label><textarea placeholder="Kondisi di lapangan" onchange="setNote('${s}',this.value)">${esc(a.note)}</textarea></div>
+        <div><label>Penjelasan</label><textarea placeholder="Kondisi di lapangan" onchange="setNote('${s}',this.value)">${esc(a.note)}</textarea>${a.code&&VOCAB[a.code]?`<div class="vocab"><span class="vocab-lbl">SARAN</span>${VOCAB[a.code].map((ph,i)=>`<button type="button" class="vchip" onclick="addVocab('${s}',${i})">+ ${esc(ph)}</button>`).join('')}</div>`:''}</div>
         <div><label>Titik koordinat</label>
           <div class="coord-pill" title="Format: lintang, bujur (desimal)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -695,7 +722,7 @@ updateThemeIcons();
 ID_FIELDS.forEach(k=>{const e=document.getElementById(k);if(e)e.addEventListener('input',save);});
 document.getElementById('ubinan').addEventListener('change',save);
 document.getElementById('ppl').addEventListener('blur',function(){this.value=this.value.toUpperCase();save();});
-window.setCode=setCode;window.setNote=setNote;window.setCoord=setCoord;
+window.setCode=setCode;window.setNote=setNote;window.setCoord=setCoord;window.addVocab=addVocab;
 window.removeDoc=removeDoc;window.applyDefaults=applyDefaults;
 window.exportWord=exportWord;window.downloadPDF=downloadPDF;window.resetAll=resetAll;window.toggleTheme=toggleTheme;
 load();
